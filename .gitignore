@@ -1,3 +1,4 @@
 *.d64
 *.prg
 *.o
+res/*.dat
