@@ -1,19 +1,20 @@
 #!/usr/bin/env python 
 
-import png
+from PIL import Image
+import numpy as np
 import sys
 
-r = png.Reader(filename=sys.argv[1])
-(width, height, pixels, meta) = r.asDirect()
+im = Image.open(sys.argv[1])
+indexed = np.array(im)
+width = indexed.shape[1]
+height = indexed.shape[0]
 
 if width != 320 or height != 200 :
   print "Image needs to be 320x200"
   sys.exit(1)
 
-row = list(pixels)
-
 # final hires bytes
-data = [0,0]
+data = [0x00, 0xA0]
 
 # iterate over the 8px tall screen rows 
 for superrow in range(25) :
@@ -27,8 +28,8 @@ for superrow in range(25) :
         x = 8 * col + 7 - bit
         y = 8 * superrow + char
 
-        c = row[y][x*3]
-        if c > 127 :
+        c = indexed[y][x]
+	if c == 0 :
           byte += 1 << bit
 
       data.append(byte)
