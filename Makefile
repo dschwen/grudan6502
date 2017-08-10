@@ -1,16 +1,18 @@
-all: grudan.d64
+MAIN:=raster
 
-grudan.prg: grudan.s
-	cl65 -o grudan.prg -u __EXEHDR__ -t c64 -C c64-asm.cfg grudan.s
+all: $(MAIN).d64
 
-grudan.d64: grudan.prg res/daniel.dat
-	c1541 -format grudan,01 d64 grudan.d64 -write grudan.prg grudan.prg -write res/daniel.dat a
+$(MAIN).prg: $(MAIN).s
+	cl65 -o $(MAIN).prg -u __EXEHDR__ -t c64 -C c64-asm.cfg $(MAIN).s
+
+$(MAIN).d64: $(MAIN).prg res/daniel.dat
+	c1541 -format $(MAIN),01 d64 $(MAIN).d64 -write $(MAIN).prg $(MAIN).prg -write res/daniel.dat a
 
 res/daniel.dat: res/daniel.png
 	util/png2hires.py res/daniel.png res/daniel.dat
 
 clean:
-	rm -f grudan.d64 grudan.prg
+	rm -f $(MAIN).d64 $(MAIN).prg
 
-run: grudan.d64
-	x64 -autostart grudan.d64
+run: $(MAIN).d64
+	x64 -autostart $(MAIN).d64
