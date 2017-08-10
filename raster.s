@@ -2,6 +2,27 @@
 ; Raster Interrupt Test
 ;
 
+; enable sprites
+	lda #%11111111
+	sta $D015
+; set x (and y) positions
+	ldx #16
+	ldy #225 ; 8*24 + 8 + border
+@loop:	dex
+	lda #58 ; y position
+	sta $D000,x
+	tya
+	sbc #24
+	tay
+	dex
+	sta $D000,x
+	bne @loop
+; set sprite pointers
+	ldx #8
+	lda #0
+@loop2:	dex
+	sta $07F8,x
+	bne @loop2
 ; switch off CIA interrupts
 	lda #%01111111
 	sta $DC0D
