@@ -31,7 +31,7 @@ for spriterow in range(9) :
           y = 21 * spriterow + row
 
           c = indexed[y][x]
-          if c == 0 :
+          if c == 1 :
             byte += 1 << bit
 
         data.append(byte)
