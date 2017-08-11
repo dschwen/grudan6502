@@ -7,12 +7,12 @@
 	sta $D015
 ; set x (and y) positions
 	ldx #16
-	ldy #8 ; 8 + border
+	ldy #224 ; 8 + border
 @loop:	dex
 	lda #58 ; y position
 	sta $D000,x
 	tya
-	adc #24
+	sbc #24
 	tay
 	dex
 	sta $D000,x
