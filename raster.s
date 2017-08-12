@@ -2,27 +2,19 @@
 ; Raster Interrupt Test
 ;
 
-; enable sprites
-	lda #%11111111
-	sta $D015
-; set x (and y) positions
-	ldx #16
-	ldy #224 ; 8 + border
-@loop:	dex
-	lda #58 ; y position
-	sta $D000,x
-	tya
-	sbc #24
-	tay
-	dex
-	sta $D000,x
-	bne @loop
-; set sprite colors
-	ldx #8
-	lda #0
-@loop2:	sta $D026,x
-	dex
-	bne @loop2
+;.macro	setspritex sprite, xcoord
+;	lda #<xcoord
+;	sta ($D000 + 2 * sprite)
+;	lda (#1 << sprite)
+;.if #>xcoord
+;	ora $D010
+;.else
+;	eor #$ff
+;	and $D010
+;.endif
+;	sta $D010
+;.endmacro
+;
 ; load image
 	lda #$42	; 'B'
 	sta $22
@@ -30,7 +22,35 @@
 	sta $23
 	lda #$2E
 	sta $24
-	;jsr loadfile
+	jsr loadfile
+; enable sprites
+	lda #%11111111
+	sta $D015
+; set x positions
+	lda #100
+	sta $D000
+	lda #124
+	sta $D002
+	lda #148
+	sta $D004
+	lda #172
+	sta $D006
+	lda #196
+	sta $D008
+	lda #220
+	sta $D00a
+	lda #244
+	sta $D00c
+	lda #13
+	sta $D00e
+	lda #%10000000
+	sta $D010
+; set sprite colors
+	ldx #8
+	lda #0
+@loop2:	sta $D026,x
+	dex
+	bne @loop2
 ; switch off CIA interrupts
 	lda #%01111111
 	sta $DC0D
@@ -38,7 +58,7 @@
 	and $D011
 	sta $D011
 ; set raster line number
-	lda #57
+	lda #55
 	sta $D012
 ; set interrupt vector
 	lda #<irq1
@@ -51,7 +71,19 @@
 ; return to basic
 	rts
 
+yoffset = 50 ; 56
+yheight = 20
+
 .macro	movesprites pos, irq, base
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	lda #2
+	sta $D021
 ; set sprite positions
 	lda pos
 	sta $D001
@@ -80,40 +112,42 @@
 	ldx base+7
 	stx $07FF
 ; set raster line number
-	lda pos+15
+	lda pos + yheight - 1
 	sta $D012
 	lda #<irq
 	sta $0314
 	lda #>irq
 	sta $0315
 	asl $d019
+	lda #6
+	sta $D021
 .endmacro
 
-irq1:	movesprites #58, irq2, #184
+irq1:	movesprites #(yoffset), irq2, #184
 	jmp $EA81
 
-irq2:	movesprites #79, irq3, #184+8
+irq2:	movesprites #(yoffset + yheight), irq3, #184+8
 	jmp $EA81
 
-irq3:	movesprites #100, irq4, #184+16
+irq3:	movesprites #(yoffset + yheight * 2), irq4, #184+16
 	jmp $EA81
 
-irq4:	movesprites #121, irq5, #184+24
+irq4:	movesprites #(yoffset + yheight * 3), irq5, #184+24
 	jmp $EA81
 
-irq5:	movesprites #142, irq6, #184+32
+irq5:	movesprites #(yoffset + yheight * 4), irq6, #184+32
 	jmp $EA81
 
-irq6:	movesprites #163, irq7, #184+40
+irq6:	movesprites #(yoffset + yheight * 5), irq7, #184+40
 	jmp $EA81
 
-irq7:	movesprites #184, irq8, #184+48
+irq7:	movesprites #(yoffset + yheight * 6), irq8, #184+48
 	jmp $EA81
 
-irq8:	movesprites #205, irq9, #184+56
+irq8:	movesprites #(yoffset + yheight * 7), irq9, #184+56
 	jmp $EA81
 
-irq9:	movesprites #226, irq1, #184+64
+irq9:	movesprites #(yoffset + yheight * 8), irq1, #184+64
 	jmp $EA31
 
 
