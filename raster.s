@@ -73,12 +73,29 @@ xoffset = 148
 ; return to basic
 	rts
 
-yoffset = 54 ; 50
+yoffset = 53
 yheight = 21
 
 .macro	movesprites pos, irq, base
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+
+	nop
+	nop
+	nop
 	;lda #2
 	;sta $D021
+
 ; set sprite pointers
 	ldx base
 	stx $07F8
@@ -96,18 +113,39 @@ yheight = 21
 	stx $07FE
 	ldx base+7
 	stx $07FF
+
+	nop
+	nop
+	nop
+	;lda #6
+	;sta $D021
+
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 ; set sprite positions
 	lda #pos
 	sta $D001
 	sta $D003
 	sta $D005
 	sta $D007
+	lda #pos
 	sta $D009
 	sta $D00B
 	sta $D00D
 	sta $D00F
+	;lda #6
+	;sta $D021
 ; set raster line number
-	lda #(pos-1)
+	lda #(pos-2)
 	sta $D012
 	lda #<irq
 	sta $0314
