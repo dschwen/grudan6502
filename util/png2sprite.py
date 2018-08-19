@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
-from PIL import Image
-import numpy as np
 import sys
+import png
+import numpy
+import itertools
 
-im = Image.open(sys.argv[1])
-indexed = np.array(im)
-width = indexed.shape[1]
-height = indexed.shape[0]
+r = png.Reader(sys.argv[1])
+im = r.asRGB8()
+width = im[0]
+height = im[1]
+rgb = numpy.vstack(itertools.imap(numpy.uint8, im[2]))
 
 if width != 192 or height != 189 :
   print "Image needs to be 192x189"
@@ -30,8 +32,8 @@ for spriterow in range(9) :
           x = 24 * spritecol + 8 * col + 7 - bit
           y = 21 * spriterow + row
 
-          c = indexed[y][x]
-          if c == 1 :
+          c = rgb[y][x * 3]
+          if c == 0 :
             byte += 1 << bit
 
         data.append(byte)

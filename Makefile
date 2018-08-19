@@ -1,4 +1,5 @@
-MAIN:=raster
+#MAIN:=raster
+MAIN:=grudan
 
 all: $(MAIN).d64
 
