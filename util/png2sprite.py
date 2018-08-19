@@ -12,7 +12,7 @@ height = im[1]
 rgb = numpy.vstack(itertools.imap(numpy.uint8, im[2]))
 
 if width != 192 or height != 189 :
-  print "Image needs to be 192x189"
+  print("Image needs to be 192x189")
   sys.exit(1)
 
 # final sprite bytes

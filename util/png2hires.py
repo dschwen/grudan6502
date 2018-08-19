@@ -12,7 +12,7 @@ height = im[1]
 rgb = numpy.vstack(itertools.imap(numpy.uint8, im[2]))
 
 if width != 320 or height != 200 :
-  print "Image needs to be 320x200"
+  print("Image needs to be 320x200")
   sys.exit(1)
 
 # final hires bytes
