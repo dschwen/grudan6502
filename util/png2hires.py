@@ -3,13 +3,16 @@
 import sys
 import png
 import numpy
-import itertools
+try :
+    from itertools import imap
+except:
+    imap = map
 
 r = png.Reader(sys.argv[1])
 im = r.asRGB8()
 width = im[0]
 height = im[1]
-rgb = numpy.vstack(itertools.imap(numpy.uint8, im[2]))
+rgb = numpy.vstack(imap(numpy.uint8, im[2]))
 
 if width != 320 or height != 200 :
   print("Image needs to be 320x200")
@@ -31,7 +34,7 @@ for superrow in range(25) :
         y = 8 * superrow + char
 
         c = rgb[y][x * 3]
-	if c != 0 :
+        if c != 0 :
           byte += 1 << bit
 
       data.append(byte)

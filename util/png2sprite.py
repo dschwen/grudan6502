@@ -3,13 +3,16 @@
 import sys
 import png
 import numpy
-import itertools
+try:
+    from itertools import imap
+except:
+    imap = map
 
 r = png.Reader(sys.argv[1])
 im = r.asRGB8()
 width = im[0]
 height = im[1]
-rgb = numpy.vstack(itertools.imap(numpy.uint8, im[2]))
+rgb = numpy.vstack(imap(numpy.uint8, im[2]))
 
 if width != 192 or height != 189 :
   print("Image needs to be 192x189")
