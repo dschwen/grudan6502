@@ -1,5 +1,10 @@
-#MAIN:=raster
-MAIN:=grudan
+MAIN ?= raster
+
+ifneq (,$(wildcard ~/Downloads/C64\ 65XE\ Debugger\ v0.64.56.4/C64\ Debugger.app/Contents/MacOS/C64Debugger))
+  C64DEBUGGER := ~/Downloads/C64\ 65XE\ Debugger\ v0.64.56.4/C64\ Debugger.app/Contents/MacOS/C64Debugger
+else ifneq (,$(wildcard /usr/local/bin/c64debugger))
+  C64DEBUGGER := /usr/local/bin/c64debugger
+endif
 
 all: $(MAIN).d64
 
@@ -31,3 +36,7 @@ run: $(MAIN).d64
 debug: $(MAIN).d64
 	echo "load_labels \"$(MAIN).lbl\"" > debug.cmd
 	x64 -autostart $(MAIN).d64 -moncommands debug.cmd -nativemonitor
+
+debug2: $(MAIN).d64 $(MAIN).lbl
+	echo "load_labels \"$(MAIN).lbl\"" > debug.cmd
+	$(C64DEBUGGER) -autorundisk -d64 $(MAIN).d64 -symbols $(MAIN).lbl

@@ -86,8 +86,8 @@ yheight = 21
 	nop
 	nop
 	nop
-	;lda #2
-	;sta $D021
+	lda #2
+	sta $D021
 
 ; set sprite pointers
 	ldx base
@@ -135,8 +135,8 @@ yheight = 21
 	sta $D00B
 	sta $D00D
 	sta $D00F
-	;lda #6
-	;sta $D021
+	lda #6
+	sta $D021
 ; set raster line number
 	lda #(pos-2)
 	sta $D012
