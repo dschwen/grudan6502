@@ -86,6 +86,7 @@ yheight = 21
 	nop
 	nop
 	nop
+; change background (for debugging)
 	lda #2
 	sta $D021
 
@@ -110,9 +111,6 @@ yheight = 21
 	nop
 	nop
 	nop
-	;lda #6
-	;sta $D021
-
 	nop
 	nop
 	nop
@@ -124,17 +122,17 @@ yheight = 21
 	nop
 	nop
 	nop
-; set sprite positions
+; set sprite positions (for the next row)
 	lda #pos
 	sta $D001
 	sta $D003
 	sta $D005
 	sta $D007
-;	lda #pos
 	sta $D009
 	sta $D00B
 	sta $D00D
 	sta $D00F
+; change background (for debugging)
 	lda #6
 	sta $D021
 ; set raster line number
