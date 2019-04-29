@@ -17,7 +17,7 @@ res/daniel.dat: res/daniel.png util/png2hires.py
 	python util/png2hires.py res/daniel.png res/daniel.dat
 
 res/stripes.dat: util/png2sprite.py
-	util/dummysprite.py res/stripes.dat
+	python util/dummysprite.py res/stripes.dat
 
 res/daniel_sprite.dat: res/daniel_sprite.png util/png2sprite.py
 	python util/png2sprite.py res/daniel_sprite.png res/daniel_sprite.dat
