@@ -18,7 +18,7 @@
 xoffset = 148
 
 ; load image
-	lda #$42	; 'B'
+	lda #$43	; 'C'
 	sta $22
 	lda #$00
 	sta $23
@@ -86,13 +86,6 @@ yheight = 21
 	nop
 	nop
 	nop
-	nop
-	nop
-	nop
-
-	nop
-	nop
-	nop
 	;lda #2
 	;sta $D021
 
@@ -137,7 +130,7 @@ yheight = 21
 	sta $D003
 	sta $D005
 	sta $D007
-	lda #pos
+;	lda #pos
 	sta $D009
 	sta $D00B
 	sta $D00D
