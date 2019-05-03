@@ -1,4 +1,7 @@
 *.d64
 *.prg
 *.o
+*.lbl
+.ruby-version
+debug.cmd
 res/*.dat
