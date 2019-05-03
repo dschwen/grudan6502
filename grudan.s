@@ -26,7 +26,7 @@
 	lda #$00
 	sta $22
 	lda #$80
-	sta $23		; zero page register $22 holds $A000
+	sta $23		; zero page register $22 holds $8000
 	lda #$84
 	sta $24		; msb of end of block address
 	lda #$10

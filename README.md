@@ -15,3 +15,27 @@ make run
 ```
 
 launches the built d64 in vice and autostarts the main program.
+
+## Memory
+
+Using vic bank 1 ($4000-$7fff)
+
+
+$8000 |-------------|
+      |             |
+      | Sprites     |
+      |             |
+$6800 |-------------|
+      | Screen 1    |
+$6400 |-------------|
+      | Screen 0    |
+$6000 |-------------|
+      |             |
+      |             |
+      |             |
+      | Hires       |
+      |             |
+      |             |
+      |             |
+      |             |
+$4000 |-------------|
