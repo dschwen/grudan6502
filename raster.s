@@ -124,38 +124,27 @@ screen1 = %10010000
 yoffset = 53
 yheight = 21
 
-.macro	move0 pos, irq, base
-; change background (for debugging)
-;	lda #2
-;	sta $D021
-
+.macro	spritepointer ptr_offset, base
 ; set sprite pointers
-	ldx base
-	stx $63F8
-	ldx base+1
-	stx $63F9
-	ldx base+2
-	stx $63FA
-	ldx base+3
-	stx $63FB
-	ldx base+4
-	stx $63FC
-	ldx base+5
-	stx $63FD
-	ldx base+6
-	stx $63FE
-	ldx base+7
-	stx $63FF
-	lda #screen0
-	sta $D018
+	ldx #base
+	stx ptr_offset
+	ldx #(base+1)
+	stx ptr_offset+1
+	ldx #(base+2)
+	stx ptr_offset+2
+	ldx #(base+3)
+	stx ptr_offset+3
+	ldx #(base+4)
+	stx ptr_offset+4
+	ldx #(base+5)
+	stx ptr_offset+5
+	ldx #(base+6)
+	stx ptr_offset+6
+	ldx #(base+7)
+	stx ptr_offset+7
+.endmacro
 
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
+.macro spritepos pos
 ; set sprite positions (for the next row)
 	lda #pos
 	sta $D001
@@ -166,7 +155,10 @@ yheight = 21
 	sta $D00B
 	sta $D00D
 	sta $D00F
-; set raster line number
+.endmacro
+
+.macro setrasterinterrupt pos, irq
+; set raster interrupt 'irq' to line 'pos'
 	lda #(pos-2)
 	sta $D012
 	lda #<irq
@@ -174,91 +166,67 @@ yheight = 21
 	lda #>irq
 	sta $0315
 	asl $d019
+.endmacro
+
+.macro nop7wait
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+.endmacro
+
+.macro	move0 pos, irq, base
+	spritepointer $63F8, base
+	lda #screen0
+	sta $D018
+	nop7wait
+	spritepos pos
+	setrasterinterrupt pos-2, irq
 .endmacro
 
 .macro	move1 pos, irq, base
-; change background (for debugging)
-;	lda #2
-;	sta $D021
-
-; set sprite pointers
-	ldx base
-	stx $67F8
-	ldx base+1
-	stx $67F9
-	ldx base+2
-	stx $67FA
-	ldx base+3
-	stx $67FB
-	ldx base+4
-	stx $67FC
-	ldx base+5
-	stx $67FD
-	ldx base+6
-	stx $67FE
-	ldx base+7
-	stx $67FF
+	spritepointer $67F8, base
 	lda #screen1
 	sta $D018
-
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-; set sprite positions (for the next row)
-	lda #pos
-	sta $D001
-	sta $D003
-	sta $D005
-	sta $D007
-	sta $D009
-	sta $D00B
-	sta $D00D
-	sta $D00F
-; set raster line number
-	lda #(pos-2)
-	sta $D012
-	lda #<irq
-	sta $0314
-	lda #>irq
-	sta $0315
-	asl $d019
+	nop7wait
+	spritepos pos
+	setrasterinterrupt pos-2, irq
 .endmacro
 
-irq1:	move0 yoffset + 16, irq2, #160
+irq1:	move0 yoffset+16, irq2, 160
 	jmp $EA81
 
-irq2:	move1 yoffset + 32, irq3, #160+8
+irq2:	move1 yoffset+32, irq3, 160+8
 	jmp $EA81
 
-irq3:	move0 yoffset + 48, irq4, #160+16
+irq3:	move0 yoffset+48, irq4, 160+16
 	jmp $EA81
 
-irq4:	move1 yoffset + 64, irq5, #160+24
+irq4:	move1 yoffset+64, irq5, 160+24
 	jmp $EA81
 
-irq5:	move0 yoffset + 80, irq6, #160+32
+irq5:	move0 yoffset+80, irq6, 160+32
 	jmp $EA81
 
-irq6:	move1 yoffset + 96, irq7, #160+40
+irq6:	move1 yoffset+96, irq7, 160+40
 	jmp $EA81
 
-irq7:	move0 yoffset + 112, irq8, #160+48
+irq7:	move0 yoffset+112, irq8, 160+48
 	jmp $EA81
 
-irq8:	move1 yoffset + 128, irq9, #160+56
+irq8:	move1 yoffset+128, irq9, 160+56
 	jmp $EA81
 
-irq9:	move0 yoffset + 144, irq10, #160+64
+irq9:	move0 yoffset+144, irq10, 160+64
 	jmp $EA81
 
-irq10:	move1 yoffset + 160, irq11, #160+72
+irq10:	move1 yoffset+160, irq11, 160+72
 	jmp $EA81
 
-irq11:	move0 yoffset, irq1, #160+80
+irq11:	move0 yoffset, irq1, 160+80
 	jmp $EA31
 
 ; clear block
