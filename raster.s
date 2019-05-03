@@ -17,6 +17,34 @@
 
 xoffset = 148
 
+; select vic bank 1 (starts at $4000)
+	lda $DD00
+	and #%11111100
+	ora #%00000001
+	sta $DD00
+; set bank offsets
+	lda $D018
+	and #%00000001
+	ora #%00001000  ; bitmap buffer offset to $2000 ($6000)
+	ora #%00000000	; color  buffer offset to $0000 ($4000)
+	sta $D018
+; clear color
+	lda #$00
+	sta $22
+	lda #$80
+	sta $23		; zero page register $22 holds $A000
+	lda #$84
+	sta $24		; msb of end of block address
+	lda #$10
+	jsr clear
+; clear bitmap
+	lda #$A0
+	sta $23		; zero page register $22 holds $A000
+	lda #$c0
+	sta $24		; msb of end of block address
+	lda #%11110000
+	jsr clear
+
 ; load image
 	lda #$43	; 'C'
 	sta $22
@@ -174,6 +202,18 @@ irq8:	movesprites (yoffset + yheight * 8), irq9, #184+56
 irq9:	movesprites yoffset, irq1, #184+64
 	jmp $EA31
 
+; clear block
+clear:
+	ldy #$00
+@loop:	sta ($22),y	; loop to clear the bitmap
+	iny		; increment lsb (y) for inner loop
+	bne @loop
+	ldx $23		; increment msb for outer loop
+	inx
+	stx $23
+	cpx $24
+	bne @loop
+	rts
 
 ; load file to address
 ;   filenames are single characters stored in $22
