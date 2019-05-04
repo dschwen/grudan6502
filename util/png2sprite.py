@@ -18,8 +18,10 @@ if width != 192 or height != 189 :
   print("Image needs to be 192x189")
   sys.exit(1)
 
-# final sprite bytes
-data = [0x00, 0x2e]
+# sprite file bytes, starting with lo,hi addres
+data = [0x00, 0x68] + [0] * (11*8*64)
+
+# iterate over image pixels
 
 # iterate over the 8px tall screen rows
 for spriterow in range(9) :
