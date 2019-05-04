@@ -16,6 +16,9 @@
 ;.endmacro
 
 xoffset = 32
+yoffset = 58
+yheight = 21
+
 ; bitmap buffer offset to $0000 ($4000), color  buffer offset to $2000 ($6000) / $2400 ($6400)
 screen0 = %10000000
 screen1 = %10010000
@@ -93,7 +96,7 @@ screen1 = %10010000
 	sta $D00c
 	lda #<(xoffset + 24 * 7)
 	sta $D00e
-	lda #%11100000
+	lda #%0000000
 	sta $D010
 ; set sprite colors
 	ldx #8
@@ -120,9 +123,6 @@ screen1 = %10010000
 	sta $D01A
 ; return to basic
 	rts
-
-yoffset = 53
-yheight = 21
 
 .macro	spritepointer ptr_offset, base
 ; set sprite pointers
@@ -178,55 +178,97 @@ yheight = 21
 	nop
 .endmacro
 
-.macro	move0 pos, irq, base
+.macro spritedata0 base
 	spritepointer $63F8, base
 	lda #screen0
 	sta $D018
+.endmacro
+
+.macro spritedata1 base
+	spritepointer $67F8, base
+	lda #screen1
+	sta $D018
+.endmacro
+
+.macro	move0 pos, irq, base
+	spritedata0 base
 	nop7wait
 	spritepos pos
 	setrasterinterrupt pos-2, irq
 .endmacro
 
 .macro	move1 pos, irq, base
-	spritepointer $67F8, base
-	lda #screen1
-	sta $D018
+	spritedata1 base
 	nop7wait
 	spritepos pos
 	setrasterinterrupt pos-2, irq
 .endmacro
 
-irq1:	move0 yoffset+16, irq2, 160
+; at line -2
+irq1:	spritedata0 160
+	setrasterinterrupt yoffset+16*1, irq2
 	jmp $EA81
 
-irq2:	move1 yoffset+32, irq3, 160+8
+irq2:	spritedata1 160+8*1
+	nop7wait
+	spritepos yoffset+21*1			; 21
+	setrasterinterrupt yoffset+16*2, irq3	; 32
 	jmp $EA81
 
-irq3:	move0 yoffset+48, irq4, 160+16
+irq3:	spritedata0 160+8*2
+	nop7wait
+	spritepos yoffset+21*2			; 42
+	setrasterinterrupt yoffset+16*3, irq4	; 48
 	jmp $EA81
 
-irq4:	move1 yoffset+64, irq5, 160+24
+irq4:	spritedata1 160+8*3
+	nop7wait
+	spritepos yoffset+21*3			; 63
+	setrasterinterrupt yoffset+16*4, irq5	; 64
 	jmp $EA81
 
-irq5:	move0 yoffset+80, irq6, 160+32
+irq5:	spritedata0 160+8*4
+	setrasterinterrupt yoffset+16*5, irq6
 	jmp $EA81
 
-irq6:	move1 yoffset+96, irq7, 160+40
+irq6:	spritedata1 160+8*5
+	nop7wait
+	spritepos yoffset+21*4			; 84
+	setrasterinterrupt yoffset+16*6, irq7	; 96
 	jmp $EA81
 
-irq7:	move0 yoffset+112, irq8, 160+48
+irq7:	spritedata0 160+8*6
+	nop7wait
+	spritepos yoffset+21*5			; 105
+	setrasterinterrupt yoffset+16*7, irq8   ; 112
 	jmp $EA81
 
-irq8:	move1 yoffset+128, irq9, 160+56
+irq8:	spritedata1 160+8*7
+	nop7wait
+	spritepos yoffset+21*6			; 126
+	setrasterinterrupt yoffset+16*8, irq9	; 128
 	jmp $EA81
 
-irq9:	move0 yoffset+144, irq10, 160+64
+irq9:	spritedata0 160+8*8
+	setrasterinterrupt yoffset+16*9, irq10
 	jmp $EA81
 
-irq10:	move1 yoffset+160, irq11, 160+72
+irq10:	spritedata1 160+8*9
+	nop7wait
+	spritepos yoffset+21*7			; 147
+	setrasterinterrupt yoffset+16*10, irq11	; 160
 	jmp $EA81
 
 irq11:	move0 yoffset, irq1, 160+80
+	spritedata0 160+8*10
+	nop7wait
+	spritepos yoffset			; top of screen
+	setrasterinterrupt yoffset+16*11, irq12
+	jmp $EA81
+
+irq12:	move0 yoffset, irq1, 160+80
+	spritedata1 160+8*11			; switch last row to empty
+	setrasterinterrupt yoffset+16*0, irq1	; top of screen
 	jmp $EA31
 
 ; clear block
