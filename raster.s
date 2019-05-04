@@ -65,16 +65,17 @@ screen1 = %10010000
 	lda #$80
 	sta $24		; msb of end of block address ($8000)
 	lda #%10101010
-	jsr clear
+	;jsr clear
 
 ; load image
-;	lda #$43	; 'C'
-;	sta $22
-;	lda #$00
-;	sta $23
-;	lda #$2E
-;	sta $24
-;	jsr loadfile
+	;lda #$42	; 'B'
+	lda #$43	; 'C'
+	sta $22
+	lda #$00
+	sta $23
+	lda #$2E
+	sta $24
+	jsr loadfile
 
 ; enable sprites
 	lda #%11111111
@@ -310,7 +311,7 @@ loadfile:
 	ldx $ba		; last used device number
 	bne @skip
 	ldx #$08	; default to device 8
-@skip:	ldy #$00	; $00 means: load to new address
+@skip:	ldy #$01	; $01 means: load to address stored in file
 	jsr $FFBA	; call setlfs
 	ldx $23
 	ldy $24
