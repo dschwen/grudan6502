@@ -49,7 +49,7 @@ screen1 = %10010000
 	sta $23		; zero page register $22 holds $6400
 	lda #$68
 	sta $24		; msb of end of block address ($6800)
-	lda #$21
+	lda #$23
 	jsr clear
 ; clear bitmap
 	lda #$40
