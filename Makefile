@@ -33,6 +33,9 @@ clean:
 run: $(MAIN).d64
 	x64 -autostart $(MAIN).d64 -warp
 
+debug:
+	"$(C64DEBUGGER)" -autostart $(MAIN).d64 -warp
+
 monitor: $(MAIN).d64
 	echo "load_labels \"$(MAIN).lbl\"" > debug.cmd
 	x64 -autostart $(MAIN).d64 -moncommands debug.cmd -nativemonitor
