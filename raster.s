@@ -125,6 +125,19 @@ screen1 = %10010000
 ; return to basic
 	rts
 
+testblock:
+	lda #$0a
+	sta $22
+	sta $23
+@loop: jsr block
+	dec $22
+	bpl @loop
+	lda #$0a
+	sta $22
+	dec $23
+	bpl @loop
+	rts
+
 .macro	spritepointer ptr_offset, base
 ; set sprite pointers
 	ldx #base
@@ -146,7 +159,7 @@ screen1 = %10010000
 .endmacro
 
 .macro spritepos pos
-; set sprite positions (for the next row)
+; set sprite y positions (for the next row)
 	lda #pos
 	sta $D001
 	sta $D003
@@ -193,13 +206,6 @@ screen1 = %10010000
 
 .macro	move0 pos, irq, base
 	spritedata0 base
-	nop7wait
-	spritepos pos
-	setrasterinterrupt pos-2, irq
-.endmacro
-
-.macro	move1 pos, irq, base
-	spritedata1 base
 	nop7wait
 	spritepos pos
 	setrasterinterrupt pos-2, irq
@@ -330,3 +336,34 @@ loadfile:
 
 	;... error handling ...
 	rts
+
+;
+block1:
+	; high byte of sprite destination address
+	lda $22  ; load x coordinate of tile from $22
+	cmp #$06 ; if x coord >= 6 increment x
+	bcc @noinc
+	lda $23	; load y coordinate of tile from $23
+	rol ; multiply by 2
+	ora #$01 ; add one
+	jmp @done
+@noinc:
+	lda $23	; load y coordinate of tile from $23
+	rol ; multiply by 2
+@done:
+	adc #$68 ; add 68 to high byte
+	; modify hi byte of write instruction
+	sta spritewrite+2
+	; get first lo byte from table
+	; get first x register value from table
+
+	; modify lo byte of write instruction
+	sta spritewrite+1
+
+spritewrite:
+	sta $ffff,x
+
+	txa
+	axs #$03	; decrease x by 3
+
+;.include "block.inc"

@@ -9,7 +9,7 @@ endif
 all: $(MAIN).d64
 
 $(MAIN).prg: $(MAIN).s
-	cl65 -g -o $(MAIN).prg -u __EXEHDR__ -t c64 -C c64-asm.cfg $(MAIN).s -Ln $(MAIN).lbl
+	cl65 -g -o $(MAIN).prg -u __EXEHDR__ --cpu 6502x -t c64 -C c64-asm.cfg $(MAIN).s -Ln $(MAIN).lbl
 
 $(MAIN).d64: $(MAIN).prg res/daniel.dat res/daniel_sprite.dat res/stripes.dat
 	c1541 -format $(MAIN),01 d64 $(MAIN).d64 \

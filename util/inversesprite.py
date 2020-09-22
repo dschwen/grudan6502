@@ -19,5 +19,5 @@ for y in range(11*16):
             line += ' '
 
     print(line)
-    if y>0 and y % 16 == 0:
+    if y % 16 == 15:
         print
