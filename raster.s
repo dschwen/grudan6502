@@ -122,20 +122,27 @@ screen1 = %10010000
 ; enable raster interrupt from VIC
 	lda #%00000001
 	sta $D01A
-; return to basic
-	rts
+
+
+;	lda #$00
+;	sta $22
+;	sta $23
+;	jsr block1
+;; return to basic
+;	rts
 
 testblock:
-	lda #$0a
+	lda #$08
 	sta $22
 	sta $23
-@loop: jsr block
+@loop: jsr block1
 	dec $22
 	bpl @loop
-	lda #$0a
+	lda #$08
 	sta $22
 	dec $23
 	bpl @loop
+	; return to basic
 	rts
 
 .macro	spritepointer ptr_offset, base
@@ -266,15 +273,14 @@ irq10:	spritedata1 160+8*9
 	setrasterinterrupt yoffset+16*10, irq11	; 160
 	jmp $EA81
 
-irq11:	move0 yoffset, irq1, 160+80
-	spritedata0 160+8*10
+irq11: spritedata0 160+8*10
 	nop7wait
-	spritepos yoffset			; top of screen
+	spritepos yoffset+21*8
 	setrasterinterrupt yoffset+16*11, irq12
 	jmp $EA81
 
-irq12:	move0 yoffset, irq1, 160+80
-	spritedata1 160+8*11			; switch last row to empty
+irq12: spritedata1 160+8*11			; switch last row to empty
+	spritepos yoffset			; top of screen
 	setrasterinterrupt yoffset+16*0, irq1	; top of screen
 	jmp $EA31
 
@@ -337,33 +343,73 @@ loadfile:
 	;... error handling ...
 	rts
 
-;
-block1:
+.macro blockcol lowbase, yval
+.scope
 	; high byte of sprite destination address
 	lda $22  ; load x coordinate of tile from $22
 	cmp #$06 ; if x coord >= 6 increment x
 	bcc @noinc
 	lda $23	; load y coordinate of tile from $23
+	tay ; move y coord into y register
 	rol ; multiply by 2
 	ora #$01 ; add one
 	jmp @done
 @noinc:
 	lda $23	; load y coordinate of tile from $23
+	tay ; move y coord into y register
 	rol ; multiply by 2
 @done:
 	adc #$68 ; add 68 to high byte
 	; modify hi byte of write instruction
-	sta spritewrite+2
+	sta @spritewrite+2
 	; get first lo byte from table
+	lda $23  ; load y coordinate of tile from $23
+	rol
+	rol
+	adc $23
+	rol
+	adc $23
+	adc $22 ; add x
+	rol ; multiplies y * 22 + 2*x
+	tax
+	lda lowbase, x ; get value from table
 	; get first x register value from table
-
 	; modify lo byte of write instruction
-	sta spritewrite+1
-
-spritewrite:
-	sta $ffff,x
-
+	sta @spritewrite+1
+	lda yval,y ; look up ycounter value
+	cmp #$ff
+	beq @spriteend
+	tay
+	ldx #$0f
+	; at this point we have X=16, Y=yval1(y), spritewrite address hi and lo updated
+  ; write one 8*16 pixel column (half a block in the sprite matrix)
+@spritebegin:
+;	lda #%10101010
+;	lda #$ff
 	txa
-	axs #$03	; decrease x by 3
+@spritewrite:
+	sta $ffff,y
+	cpx #$00
+	beq @spriteend
+	dex
+	dey
+	dey
+	dey
+	jmp @spritebegin
+@spriteend:
+.endscope
+.endmacro
 
-;.include "block.inc"
+block1:
+	; write sprite data
+	;blockcol lowbase1, yval1
+	;blockcol lowbase2, yval2
+	;blockcol lowbase1+1, yval1
+	;blockcol lowbase2+1, yval2
+	; write hires data
+	; todo
+	rts
+
+.SEGMENT "ADATA"
+aligned:
+.include "table.inc"

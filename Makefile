@@ -13,22 +13,19 @@ ID = 17
 
 AS = ca65
 # Add defines, if needed (-DWHATEVER)
-ASFLAGS = -g --cpu $(CPU) --include-dir src/
+ASFLAGS = -g --cpu $(CPU) -t c64 --include-dir src/
 
-# $(MAIN).prg: $(MAIN).s
-# 	cl65 -g -o $(MAIN).prg -u __EXEHDR__ --cpu 6502x -t c64 -C c64-asm.cfg $(MAIN).s -Ln $(MAIN).lbl
-
-LD = ld65
+LD = cl65
 #Define segments & files in config.cfg
-LDFLAGS = -m labels.txt -Ln symbols -o $(OUTPUT) -C config.cfg
+LDFLAGS =  -t c64 -C config.cfg -u __EXEHDR__ -m labels.txt -Ln symbols -o $(OUTPUT)
 
 OBJS = \
-	raster.o
-
-%.o : %.c
-	$(AS) $(ASFLAGS) $*.s -o $@
+	$(MAIN).o
 
 all: $(DISKFILENAME)
+
+%.o : %.s
+	$(AS) $(ASFLAGS) $*.s -o $@
 
 $(OUTPUT): $(OBJS) res/daniel.dat res/daniel_sprite.dat res/stripes.dat
 	$(LD) $(LDFLAGS) $(OBJS)
@@ -52,8 +49,11 @@ res/stripes.dat: util/dummysprite.py
 res/daniel_sprite.dat: res/daniel_sprite.png util/png2sprite.py
 	python util/png2sprite.py res/daniel_sprite.png res/daniel_sprite.dat
 
+table.inc: util/codegen2.py
+	./util/codegen2.py > table.inc
+
 clean:
-	rm -f $(MAIN).d64 $(MAIN).prg
+	rm -f $(MAIN).d64 $(MAIN).prg *.o
 
 run: $(DISKFILENAME)
 	$(X64) -autostart $(DISKFILENAME) -warp
@@ -63,4 +63,4 @@ monitor: $(DISKFILENAME)
 	$(X64) -autostart $(MAIN).d64 -nativemonitor
 
 c64debugger: $(DISKFILENAME) $(MAIN).lbl
-	$(C64DEBUGGER) -autorundisk -d64 $(MAIN).d64 -symbols $(MAIN).lbl
+	"$(C64DEBUGGER)" -autorundisk -d64 $(MAIN).d64 -symbols $(MAIN).lbl
