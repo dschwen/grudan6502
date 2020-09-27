@@ -60,7 +60,7 @@ run: $(DISKFILENAME)
 
 monitor: $(DISKFILENAME)
 	echo "load_labels \"$(MAIN).lbl\"" > debug.cmd
-	$(X64) -autostart $(MAIN).d64 +nativemonitor
+	$(X64) -autostart $(MAIN).d64 -nativemonitor
 
 c64debugger: $(DISKFILENAME) $(MAIN).lbl
 	"$(C64DEBUGGER)" -autorundisk -d64 $(MAIN).d64 -symbols $(MAIN).lbl
