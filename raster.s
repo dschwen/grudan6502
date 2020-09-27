@@ -2,18 +2,7 @@
 ; Raster Interrupt Test
 ;
 
-;.macro	setspritex sprite, xcoord
-;	lda #<xcoord
-;	sta ($D000 + 2 * sprite)
-;	lda (#1 << sprite)
-;.if #>xcoord
-;	ora $D010
-;.else
-;	eor #$ff
-;	and $D010
-;.endif
-;	sta $D010
-;.endmacro
+.include "irq.s"
 
 xoffset = 32
 yoffset = 58
@@ -22,6 +11,12 @@ yheight = 21
 ; bitmap buffer offset to $0000 ($4000), color  buffer offset to $2000 ($6000) / $2400 ($6400)
 screen0 = %10000000
 screen1 = %10010000
+
+; zeropage
+tempa = $25
+
+; vic addresses
+spriteypos = $D001
 
 ; activate HiRes Mode
 	lda $D011
@@ -116,9 +111,9 @@ screen1 = %10010000
 	sta $D012
 ; set interrupt vector
 	lda #<irq1
-	sta $0314
+	sta $fffe
 	lda #>irq1
-	sta $0315
+	sta $ffff
 ; enable raster interrupt from VIC
 	lda #%00000001
 	sta $D01A
@@ -131,11 +126,11 @@ screen1 = %10010000
 ;; return to basic
 ;	rts
 
-testblock:
+testblock:jmp testblock
 	lda #$08
 	sta $22
 	sta $23
-@loop: jsr block1
+@loop:	jsr block1
 	dec $22
 	bpl @loop
 	lda #$08
@@ -145,144 +140,96 @@ testblock:
 	; return to basic
 	rts
 
-.macro	spritepointer ptr_offset, base
-; set sprite pointers
-	ldx #base
-	stx ptr_offset
-	ldx #(base+1)
-	stx ptr_offset+1
-	ldx #(base+2)
-	stx ptr_offset+2
-	ldx #(base+3)
-	stx ptr_offset+3
-	ldx #(base+4)
-	stx ptr_offset+4
-	ldx #(base+5)
-	stx ptr_offset+5
-	ldx #(base+6)
-	stx ptr_offset+6
-	ldx #(base+7)
-	stx ptr_offset+7
-.endmacro
-
-.macro spritepos pos
-; set sprite y positions (for the next row)
-	lda #pos
-	sta $D001
-	sta $D003
-	sta $D005
-	sta $D007
-	sta $D009
-	sta $D00B
-	sta $D00D
-	sta $D00F
-.endmacro
-
-.macro setrasterinterrupt pos, irq
-; set raster interrupt 'irq' to line 'pos'
-	lda #(pos-2)
-	sta $D012
-	lda #<irq
-	sta $0314
-	lda #>irq
-	sta $0315
-	asl $d019
-.endmacro
-
-.macro nop7wait
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-.endmacro
-
-.macro spritedata0 base
-	spritepointer $63F8, base
-	lda #screen0
-	sta $D018
-.endmacro
-
-.macro spritedata1 base
-	spritepointer $67F8, base
-	lda #screen1
-	sta $D018
-.endmacro
-
-.macro	move0 pos, irq, base
-	spritedata0 base
-	nop7wait
-	spritepos pos
-	setrasterinterrupt pos-2, irq
-.endmacro
 
 ; at line -2
-irq1:	spritedata0 160
+irq1:	pha
+	spritedata0 160
 	setrasterinterrupt yoffset+16*1, irq2
-	jmp $EA81
+	pla
+	rti
 
-irq2:	spritedata1 160+8*1
+irq2:	pha
+	spritedata1 160+8*1
 	nop7wait
 	spritepos yoffset+21*1			; 21
 	setrasterinterrupt yoffset+16*2, irq3	; 32
-	jmp $EA81
+	pla
+	rti
 
-irq3:	spritedata0 160+8*2
+irq3:	pha
+	spritedata0 160+8*2
 	nop7wait
 	spritepos yoffset+21*2			; 42
 	setrasterinterrupt yoffset+16*3, irq4	; 48
-	jmp $EA81
+	pla
+	rti
 
-irq4:	spritedata1 160+8*3
+irq4:	pha
+	spritedata1 160+8*3
 	nop7wait
 	spritepos yoffset+21*3			; 63
 	setrasterinterrupt yoffset+16*4, irq5	; 64
-	jmp $EA81
+	pla
+	rti
 
-irq5:	spritedata0 160+8*4
+irq5:	pha
+	spritedata0 160+8*4
 	setrasterinterrupt yoffset+16*5, irq6
-	jmp $EA81
+	pla
+	rti
 
-irq6:	spritedata1 160+8*5
+irq6:	pha
+	spritedata1 160+8*5
 	nop7wait
 	spritepos yoffset+21*4			; 84
 	setrasterinterrupt yoffset+16*6, irq7	; 96
-	jmp $EA81
+	pla
+	rti
 
-irq7:	spritedata0 160+8*6
+irq7:	pha
+	spritedata0 160+8*6
 	nop7wait
 	spritepos yoffset+21*5			; 105
 	setrasterinterrupt yoffset+16*7, irq8   ; 112
-	jmp $EA81
+	pla
+	rti
 
-irq8:	spritedata1 160+8*7
+irq8:	pha
+	spritedata1 160+8*7
 	nop7wait
 	spritepos yoffset+21*6			; 126
 	setrasterinterrupt yoffset+16*8, irq9	; 128
-	jmp $EA81
+	pla
+	rti
 
-irq9:	spritedata0 160+8*8
+irq9:	pha
+	spritedata0 160+8*8
 	setrasterinterrupt yoffset+16*9, irq10
-	jmp $EA81
+	pla
+	rti
 
-irq10:	spritedata1 160+8*9
+irq10:	pha
+	spritedata1 160+8*9
 	nop7wait
 	spritepos yoffset+21*7			; 147
 	setrasterinterrupt yoffset+16*10, irq11	; 160
-	jmp $EA81
+	pla
+	rti
 
-irq11: spritedata0 160+8*10
+irq11:	pha
+	spritedata0 160+8*10
 	nop7wait
 	spritepos yoffset+21*8
 	setrasterinterrupt yoffset+16*11, irq12
-	jmp $EA81
+	pla
+	rti
 
-irq12: spritedata1 160+8*11			; switch last row to empty
+irq12:	pha
+	spritedata1 160+8*11			; switch last row to empty
 	spritepos yoffset			; top of screen
 	setrasterinterrupt yoffset+16*0, irq1	; top of screen
-	jmp $EA31
+	pla
+	rti
 
 ; clear block
 clear:
