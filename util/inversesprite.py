@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy as np
 import sys
@@ -22,4 +22,4 @@ for y in range(11*16):
 
     print(line)
     if y % 16 == 15:
-        print
+        print('\n')

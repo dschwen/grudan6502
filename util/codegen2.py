@@ -41,6 +41,8 @@ for yy in range(11):
                 data[2] += [(14 - spriterow2)*3]
 
             # low byte BL of basis address sta $BHBL,y
+            if spriterow2 * 3 > mem2 & 0xff:
+              print("problem ", x, yy)
             data[1] += [(mem2 - spriterow2 * 3) & 0xff]
             data[3] += [mem1 & 0xff]
         else:
@@ -56,6 +58,7 @@ for yy in range(11):
 data[1] += [0] * (256 - len(data[1]))
 data[3] += [0] * (256 - len(data[3]))
 
+sys.exit(0)
 print("lowbase1:")
 print_bytes(data[1])
 print("lowbase2:")

@@ -143,7 +143,7 @@ testblock:
 	dec $23
 	bpl @loop
 	; return to basic
-	rts
+hold:	jmp hold
 
 .macro	spritepointer ptr_offset, base
 ; set sprite pointers
@@ -218,71 +218,80 @@ testblock:
 	setrasterinterrupt pos-2, irq
 .endmacro
 
+.macro	endirq
+	pla
+	tay
+	pla
+	tax
+	pla
+	rti
+.endmacro
+
 ; at line -2
 irq1:	spritedata0 160
 	setrasterinterrupt yoffset+16*1, irq2
-	jmp $EA81
+	endirq
 
 irq2:	spritedata1 160+8*1
 	nop7wait
 	spritepos yoffset+21*1			; 21
 	setrasterinterrupt yoffset+16*2, irq3	; 32
-	jmp $EA81
+	endirq
 
 irq3:	spritedata0 160+8*2
 	nop7wait
 	spritepos yoffset+21*2			; 42
 	setrasterinterrupt yoffset+16*3, irq4	; 48
-	jmp $EA81
+	endirq
 
 irq4:	spritedata1 160+8*3
 	nop7wait
 	spritepos yoffset+21*3			; 63
 	setrasterinterrupt yoffset+16*4, irq5	; 64
-	jmp $EA81
+	endirq
 
 irq5:	spritedata0 160+8*4
 	setrasterinterrupt yoffset+16*5, irq6
-	jmp $EA81
+	endirq
 
 irq6:	spritedata1 160+8*5
 	nop7wait
 	spritepos yoffset+21*4			; 84
 	setrasterinterrupt yoffset+16*6, irq7	; 96
-	jmp $EA81
+	endirq
 
 irq7:	spritedata0 160+8*6
 	nop7wait
 	spritepos yoffset+21*5			; 105
 	setrasterinterrupt yoffset+16*7, irq8   ; 112
-	jmp $EA81
+	endirq
 
 irq8:	spritedata1 160+8*7
 	nop7wait
 	spritepos yoffset+21*6			; 126
 	setrasterinterrupt yoffset+16*8, irq9	; 128
-	jmp $EA81
+	endirq
 
 irq9:	spritedata0 160+8*8
 	setrasterinterrupt yoffset+16*9, irq10
-	jmp $EA81
+	endirq
 
 irq10:	spritedata1 160+8*9
 	nop7wait
 	spritepos yoffset+21*7			; 147
 	setrasterinterrupt yoffset+16*10, irq11	; 160
-	jmp $EA81
+	endirq
 
 irq11: spritedata0 160+8*10
 	nop7wait
 	spritepos yoffset+21*8
 	setrasterinterrupt yoffset+16*11, irq12
-	jmp $EA81
+	endirq
 
 irq12: spritedata1 160+8*11			; switch last row to empty
 	spritepos yoffset			; top of screen
 	setrasterinterrupt yoffset+16*0, irq1	; top of screen
-	jmp $EA31
+	endirq
 
 ; clear block
 clear:
@@ -384,12 +393,12 @@ loadfile:
 	; at this point we have X=16, Y=yval1(y), spritewrite address hi and lo updated
   ; write one 8*16 pixel column (half a block in the sprite matrix)
 @spritebegin:
-;	lda #%10101010
+	lda #%10101010
 ;	lda #$ff
-	txa
+;	txa
 @spritewrite:
 	sta $ffff,y
-	cpx #$00
+	cpy #$00
 	beq @spriteend
 	dex
 	dey
@@ -402,10 +411,10 @@ loadfile:
 
 block1:
 	; write sprite data
-	;blockcol lowbase1, yval1
-	;blockcol lowbase2, yval2
-	;blockcol lowbase1+1, yval1
-	;blockcol lowbase2+1, yval2
+	blockcol lowbase1, yval1
+	blockcol lowbase2, yval2
+	blockcol lowbase1+1, yval1
+	blockcol lowbase2+1, yval2
 	; write hires data
 	; todo
 	rts
