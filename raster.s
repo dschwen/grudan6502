@@ -122,7 +122,10 @@ screen1 = %10010000
 ; enable raster interrupt from VIC
 	lda #%00000001
 	sta $D01A
-
+; switch off BASIC ROM
+	lda $01
+	and #%11111110
+	sta $01
 
 ;	lda #$00
 ;	sta $22
@@ -419,6 +422,4 @@ block1:
 	; todo
 	rts
 
-.SEGMENT "ADATA"
-aligned:
 .include "table.inc"

@@ -27,7 +27,7 @@ all: $(DISKFILENAME)
 %.o : %.s
 	$(AS) $(ASFLAGS) $*.s -o $@
 
-$(OUTPUT): $(OBJS) res/daniel.dat res/daniel_sprite.dat res/stripes.dat
+$(OUTPUT): $(OBJS) res/daniel.dat res/daniel_sprite.dat res/stripes.dat table.inc
 	$(LD) $(LDFLAGS) $(OBJS)
 
 # clean:
@@ -49,8 +49,8 @@ res/stripes.dat: util/dummysprite.py
 res/daniel_sprite.dat: res/daniel_sprite.png util/png2sprite.py
 	python util/png2sprite.py res/daniel_sprite.png res/daniel_sprite.dat
 
-table.inc: util/codegen2.py
-	./util/codegen2.py > table.inc
+table.inc: util/table.py util/spritelookup.py
+	./util/table.py > table.inc
 
 clean:
 	rm -f $(MAIN).d64 $(MAIN).prg *.o

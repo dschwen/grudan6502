@@ -3,10 +3,6 @@
 import sys
 import png
 import numpy
-try:
-    from itertools import imap
-except:
-    imap = map
 
 pal = [0x000000, 0xffffff, 0x883932, 0x67b6bd, 0x8b3f96, 0x55a049,
        0x40318d, 0xbfce72, 0x8b5429, 0x574200, 0xb86962, 0x505050,
