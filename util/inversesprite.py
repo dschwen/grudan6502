@@ -8,7 +8,7 @@ gbase = 0x6800
 # iterate over image pixels
 for y in range(11*16):
     line = "{:3}".format(y) + ':'
-    for x in range(11*2):
+    for x in range(12*2):
         spriteid  = x // 3
         spriterow = y % 21
         spritecol = x % 3

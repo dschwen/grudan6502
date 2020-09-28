@@ -36,9 +36,7 @@ $(OUTPUT): $(OBJS) res/daniel.dat res/daniel_sprite.dat res/stripes.dat table.in
 $(DISKFILENAME): $(OUTPUT) res/daniel.dat res/daniel_sprite.dat res/stripes.dat
 	$(C1541) -format $(DISKNAME),01 d64 $(DISKFILENAME) \
 		-write $(OUTPUT) $(OUTPUT) \
-		-write res/daniel.dat a \
-		-write res/daniel_sprite.dat b \
-		-write res/stripes.dat c
+		-write res/tiles.dat a
 
 res/daniel.dat: res/daniel.png util/png2hires.py
 	python util/png2hires.py res/daniel.png res/daniel.dat

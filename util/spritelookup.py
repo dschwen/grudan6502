@@ -12,7 +12,7 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 def print_bytes(lst):
-    for c in chunks(lst, 11):
+    for c in chunks(lst, 12):
         print('.byte ', ', '.join(["${:02x}".format(i) for i in c]))
 
 

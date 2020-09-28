@@ -19,6 +19,13 @@ xoffset = 32
 yoffset = 58
 yheight = 21
 
+tile_x = $22
+tile_y = $23
+tile_n = $24
+tmp_lookup = $25
+map_idx = $26
+addr = $27 ; and $28
+
 ; bitmap buffer offset to $0000 ($4000), color  buffer offset to $2000 ($6000) / $2400 ($6400)
 screen0 = %10000000
 screen1 = %10010000
@@ -35,6 +42,7 @@ screen1 = %10010000
 ; set bank offsets
 	lda #screen0
 	sta $D018
+
 ; clear color 0
 	lda #$00
 	sta $22
@@ -42,7 +50,7 @@ screen1 = %10010000
 	sta $23		; zero page register $22 holds $6000
 	lda #$64
 	sta $24		; msb of end of block address ($6400)
-	lda #$14
+	lda #$21
 	jsr clear
 ; clear color 1
 	lda #$64
@@ -56,20 +64,18 @@ screen1 = %10010000
 	sta $23		; zero page register $22 holds $4000
 	lda #$60
 	sta $24		; msb of end of block address ($6000)
-	lda #%11110000
+	lda #$00
 	jsr clear
-
-; fill sprite area with junk
+; clear sprite area
 	lda #$68
 	sta $23		; zero page register $22 holds $6800
 	lda #$80
 	sta $24		; msb of end of block address ($8000)
-	lda #%10101010
-	;jsr clear
+	lda #$00
+	jsr clear
 
-; load image
-	;lda #$42	; 'B'
-	lda #$43	; 'C'
+; load tile data
+	lda #$41	; file name 'A'
 	sta $22
 	lda #$00
 	sta $23
@@ -127,26 +133,41 @@ screen1 = %10010000
 	and #%11111110
 	sta $01
 
-;	lda #$00
-;	sta $22
-;	sta $23
+;	lda #$0
+;	sta tile_x
+;	sta tile_y
+;	sta tile_n
 ;	jsr block1
-;; return to basic
-;	rts
+;	jmp *
 
 testblock:
-	lda #$08
-	sta $22
-	sta $23
-@loop: jsr block1
-	dec $22
+	; setup minimap pointer and loop indices
+	lda #$78
+	sta map_idx
+	lda #$0a
+	sta tile_x
+	sta tile_y
+
+@loop:
+	; fetch tile number from mini map
+	ldx map_idx
+	lda map,x
+	sta tile_n
+	dex ; decrement minimap pointer and save to zeropage
+	stx map_idx
+	; call tile drawing routine
+	jsr block1
+	; looping logic
+	dec tile_x
 	bpl @loop
-	lda #$08
-	sta $22
-	dec $23
+	lda #$0a
+	sta tile_x
+	dec tile_y
 	bpl @loop
-	; return to basic
-hold:	jmp hold
+	; holding pattern
+	jmp *
+
+
 
 .macro	spritepointer ptr_offset, base
 ; set sprite pointers
@@ -355,71 +376,227 @@ loadfile:
 	;... error handling ...
 	rts
 
-.macro blockcol lowbase, yval
+.macro blockcol col
 .scope
 	; high byte of sprite destination address
-	lda $22  ; load x coordinate of tile from $22
+	lda tile_x  ; load x coordinate of tile from $22
 	cmp #$06 ; if x coord >= 6 increment x
 	bcc @noinc
-	lda $23	; load y coordinate of tile from $23
+	lda tile_y	; load y coordinate of tile from $23
 	tay ; move y coord into y register
 	rol ; multiply by 2
 	ora #$01 ; add one
 	jmp @done
 @noinc:
-	lda $23	; load y coordinate of tile from $23
+	lda tile_y	; load y coordinate of tile from $23
 	tay ; move y coord into y register
-	rol ; multiply by 2
+	asl ; multiply by 2
 @done:
+	clc
 	adc #$68 ; add 68 to high byte
-	; modify hi byte of write instruction
-	sta @spritewrite+2
+	; modify hi byte of write instructions
+	sta @spritewrite1+2
+	sta @spritewrite2+2
 	; get first lo byte from table
-	lda $23  ; load y coordinate of tile from $23
-	rol
-	rol
-	adc $23
-	rol
-	adc $23
-	adc $22 ; add x
-	rol ; multiplies y * 22 + 2*x
+	lda tile_y  ; load y coordinate of tile from $23
+	asl
+	asl
+	adc tile_y
+	asl
+	adc tile_y
+	adc tile_x ; add x
+	asl ; multiplies y * 22 + 2*x
 	tax
-	lda lowbase, x ; get value from table
+	sta tmp_lookup
+	lda lowbase1+col, x ; get value from table
 	; get first x register value from table
 	; modify lo byte of write instruction
-	sta @spritewrite+1
-	lda yval,y ; look up ycounter value
-	cmp #$ff
-	beq @spriteend
+	sta @spritewrite1+1
+	lda yval1,y ; look up ycounter value
 	tay
-	ldx #$0f
+	ldx #$00
 	; at this point we have X=16, Y=yval1(y), spritewrite address hi and lo updated
   ; write one 8*16 pixel column (half a block in the sprite matrix)
-@spritebegin:
-	lda #%10101010
-;	lda #$ff
-;	txa
-@spritewrite:
+	; set up sprite source addresses
+	lda tile_n
+	lsr
+	lsr
+	lsr
+	clc
+	adc #hi_bitsprite
+	sta @spritebegin1+2
+	sta @spritebegin2+2
+	lda tile_n
+	asl
+	asl
+	asl
+	asl
+	asl
+.if col
+	clc
+	adc #$10
+.endif
+	sta @spritebegin1+1
+	sta @spritebegin2+1
+@spritebegin1:
+	lda $ffff,x ; the $ffff address is a dummy value that gets overwritten
+	inx
+@spritewrite1:
 	sta $ffff,y
 	cpy #$00
-	beq @spriteend
+	beq @spriteend1
+	dey
+	dey
+	dey
+	jmp @spritebegin1
+@spriteend1:
+
+	; start second half of the column
+	ldy tmp_lookup
+	lda lowbase2+col, y ; get value from table
+	; modify lo byte of write instruction
+	sta @spritewrite2+1
+	ldy tile_y	; load y coordinate of tile from $23
+	lda yval2,y ; look up ycounter value
+	cmp #$ff
+	beq @spriteend2
+	tay
+
+@spritebegin2:
+	lda $ffff,x
+	inx
+@spritewrite2:
+	sta $ffff,y
+	cpy #$00
+	beq @spriteend2
+	dey
+	dey
+	dey
+	jmp @spritebegin2
+@spriteend2:
+.endscope
+.endmacro
+
+.macro hiresrow row
+.scope
+	; obtain hires buffer address
+	lda tile_y
+	asl
+.if row
+	clc
+	adc #$01
+.endif
+	asl
+	tay
+	lda tile_x
+	asl
+	asl
+	asl
+	asl ; x coord * 16
+	clc
+	adc hiresaddr,y ; lowbyte, carry bit set of overflow
+	sta @hireswrite+1
+	lda #$00 ; clear acc, carry flac unaffected
+	adc hiresaddr+1,y ; add higbyte with carry
+	sta @hireswrite+2
+	; obtain tile address
+	lda tile_n
+	lsr
+	lsr
+	lsr
+	clc
+	adc #hi_bithires
+	sta @hiresbegin+2
+	lda tile_n
+	asl
+	asl
+	asl
+	asl
+	asl
+.if row
+	clc
+	adc #$10
+.endif
+	sta @hiresbegin+1
+	; setup loop counter
+	ldx #$0f
+@hiresbegin:
+	lda $ffff,x
+@hireswrite:
+	sta $ffff,x
 	dex
-	dey
-	dey
-	dey
-	jmp @spritebegin
-@spriteend:
+	bpl @hiresbegin
+.endscope
+.endmacro
+
+
+.macro color
+.scope
+	lda tile_y
+	asl ; y * 2
+	tay
+	lda coloraddr+1, y ; get hi byte from table
+	sta addr+1
+	lda coloraddr, y ; get lo byte from table
+	sta addr
+	lda tile_y
+	and #$01
+	ora #$18
+	asl
+	asl ; should give $60 for even and $64 for odd rows
+	ora addr+1 ; bitwise or with hi byte from table
+	sta addr+1 ; store highbyte
+	lda #39
+	sta tmp_lookup
+	lda tile_n
+	; TODO: check if top two bit are set and #%11000000, beq @skip, otherwise add them to the hibyte (for >64 tiles)
+	asl
+	asl; * 4
+	tax
+	lda tile_x
+	asl
+	tay
+	lda colordata, x
+	sta (addr),y
+	inx
+	iny
+	lda colordata, x
+	sta (addr),y
+	inx
+	tya
+	adc tmp_lookup
+	tay
+	lda colordata, x
+	sta (addr),y
+	inx
+	iny
+	lda colordata, x
+	sta (addr),y
 .endscope
 .endmacro
 
 block1:
 	; write sprite data
-	blockcol lowbase1, yval1
-	blockcol lowbase2, yval2
-	blockcol lowbase1+1, yval1
-	blockcol lowbase2+1, yval2
+	blockcol 0
+	blockcol 1
 	; write hires data
-	; todo
+	hiresrow 0
+	hiresrow 1
+colorbrk:
+	color
 	rts
+
+map:
+.byte 4,4,4,5,2,3,3,3,3,3,3
+.byte 4,4,4,5,2,3,3,3,3,3,3
+.byte 4,4,4,5,2,3,3,3,3,3,3
+.byte 4,4,4,5,2,3,3,3,3,3,3
+.byte 1,1,1,1,0,3,3,3,3,3,3
+.byte 3,3,6,3,3,3,3,3,3,3,3
+.byte 3,3,6,3,3,3,3,3,3,3,3
+.byte 3,3,6,3,3,3,3,3,3,3,3
+.byte 3,3,6,3,3,3,3,7,3,3,3
+.byte 3,3,6,3,3,3,3,3,3,3,3
+.byte 3,3,6,3,3,3,3,3,3,3,3
 
 .include "table.inc"
